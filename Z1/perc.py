@@ -1,11 +1,24 @@
 import sys
 import numpy as np
+import random
 import pygame
 from pygame.locals import *
+import data
 
 pygame.init()
 EKRAN = pygame.display.set_mode((900,900))
 #pygame.display.update()
+
+def noisy(input):
+    ninp=input
+    random.seed()
+    for i in ninp:
+        if random.random()>0.95:
+            if i:
+                i=0
+            else:
+                i=1
+    return ninp
 
 class Perceptron(object):
 
@@ -15,15 +28,21 @@ class Perceptron(object):
             self.learning_rate = learning_rate
             self.no_of_inputs = no_of_inputs
             self.weights = np.zeros(self.no_of_inputs +1)
+            for i in self.weights:
+                i = random.uniform(-0.5,0.5)
 
         def train(self,training_data,labels):
+            datset=list(zip(training_data,labels))
+            random.shuffle(datset)
+            a,b = zip(*datset)
             for _ in range(self.iters):
-                for input, label in zip(training_data, labels):
-                    prediction = self.predict(input)
+                for input, label in zip(a,b):
+                    input=noisy(input)
+                    prediction = self.output(input)
                     self.weights[1:]+=self.learning_rate * (label - prediction)*input
                     self.weights[0]+=self.learning_rate * (label - prediction)
 
-        def predict(self, input):
+        def output(self, input):
             summation = np.dot(input,self.weights[1:])+self.weights[0]
             if summation > 0:
                 activation = 1
@@ -31,18 +50,56 @@ class Perceptron(object):
                 activation=0
             return activation
 
+def check_number():
+    pred=[]
+    inp=np.ravel(slots)
+    for i in range(10):
+        if perceptrons[i].output(inp)==1:
+            pred.append(i)
+    pred = np.array(pred)    
+    text = np.array2string(pred)
+    font=pygame.font.Font("freesansbold.ttf",16)
+    ArrSurf = font.render(text,True,(255,255,255))
+    ArrRect = ArrSurf.get_rect()
+    ArrRect.center = (750,800)
+    EKRAN.blit(ArrSurf,ArrRect)
+
 def spit_table(arr):
     j=0
     for i in arr:
+        j+=1
         text = np.array2string(i)
         font=pygame.font.Font("freesansbold.ttf",16)
         ArrSurf = font.render(text,True,(255,255,255))
         ArrRect = ArrSurf.get_rect()
         ArrRect.center = (750,25*(j+1))
         EKRAN.blit(ArrSurf,ArrRect)
-        j+=1
+    
+    pred=[]
+    inp=np.ravel(slots)
+    for i in range(10):
+        if perceptrons[i].output(inp)==1:
+            pred.append(i)
+    pred = np.array(pred)    
+    text = np.array2string(pred)
+    font=pygame.font.Font("freesansbold.ttf",16)
+    ArrSurf = font.render(text,True,(255,255,255))
+    ArrRect = ArrSurf.get_rect()
+    ArrRect.center = (750,800)
+    EKRAN.blit(ArrSurf,ArrRect)
 
 slots = np.full((9,5),0,int)
+
+perceptrons = []
+train_inputs= [np.ravel(n) for n in data.dataset]
+for _ in range(10):
+    perceptrons.append(Perceptron(5*9))
+for i in range(10):
+    labelz= np.zeros(10)
+    labelz[i]=1
+    for _ in range(10):
+        perceptrons[i].train(train_inputs,labelz)
+
 
 while True:
     mpos=pygame.mouse.get_pos()
@@ -57,8 +114,106 @@ while True:
         if event.type==QUIT:
             pygame.quit()
             sys.exit()
-        if event.type==MOUSEBUTTONUP:
+        elif event.type==MOUSEBUTTONUP:
             slots[mposg[0],mposg[1]]^=True
+        elif event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_0:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][0]=1
+                    slots[i][4]=1
+                for i in range(5):
+                    slots[0][i]=1
+                    slots[8][i]=1
+                print(slots)
+            elif event.key==pygame.K_1:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][4]=1
+                print(slots)
+            elif event.key==pygame.K_2:
+                slots = np.full((9,5),0,int)
+                for i in range(5):
+                    slots[0][i]=1
+                    slots[4][i]=1
+                    slots[8][i]=1
+                    slots[8-i][0]=1
+                    slots[i][4]=1
+                print(slots)
+            elif event.key==pygame.K_3:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][4]=1
+                for i in range(5):
+                    slots[0][i]=1
+                    slots[4][i]=1
+                    slots[8][i]=1
+                print(slots)
+            elif event.key==pygame.K_4:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][4]=1
+                for i in range(5):
+                    slots[4][i]=1
+                    slots[i][0]=1
+                print(slots)
+            elif event.key==pygame.K_5:
+                slots = np.full((9,5),0,int)
+                for i in range(5):
+                    slots[0][i]=1
+                    slots[4][i]=1
+                    slots[8][i]=1
+                    slots[i][0]=1
+                    slots[8-i][4]=1
+                print(slots)
+            elif event.key==pygame.K_6:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][0]=1
+                    slots[i][4]=1
+                for i in range(5):
+                    slots[4][i]=1
+                    slots[8][i]=1
+                    slots[0][i]=1
+                for i in [1,2,3]:
+                    slots[i][4]=0
+                print(slots)
+            elif event.key==pygame.K_7:
+                slots = np.full((9,5),0,int)
+                for i in range(5):
+                    slots[0][i]=1
+                for i in range(3):
+                    slots[i][4]=1
+                    slots[i+2][3]=1
+                    slots[i+4][2]=1
+                    slots[i+6][1]=1
+                print(slots)
+            elif event.key==pygame.K_8:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][0]=1
+                    slots[i][4]=1
+                for i in range(5):
+                    slots[0][i]=1
+                    slots[8][i]=1
+                    slots[4][i]=1
+                print(slots)
+            elif event.key==pygame.K_9:
+                slots = np.full((9,5),0,int)
+                for i in range(9):
+                    slots[i][0]=1
+                    slots[i][4]=1
+                for i in range(5):
+                    slots[0][i]=1
+                    slots[4][i]=1
+                    slots[8][i]=1
+                for i in [1,2,3]:
+                    slots[8-i][0]=0
+                print(slots)
+            elif event.key==pygame.K_SPACE:
+                check_number()
+
+
 
     spit_table(slots)
     pygame.display.update()
