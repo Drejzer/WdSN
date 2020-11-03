@@ -94,11 +94,12 @@ perceptrons = []
 train_inputs= [np.ravel(n) for n in data.dataset]
 for _ in range(10):
     perceptrons.append(Perceptron(5*9))
-for i in range(10):
-    labelz= np.zeros(10)
-    labelz[i]=1
-    for _ in range(10):
-        perceptrons[i].train(train_inputs,labelz)
+def trainer():
+    for i in range(10):
+        labelz= np.zeros(10)
+        labelz[i]=1
+        for _ in range(5):
+            perceptrons[i].train(train_inputs,labelz)
 
 
 while True:
@@ -212,6 +213,8 @@ while True:
                 print(slots)
             elif event.key==pygame.K_SPACE:
                 check_number()
+            elif event.key==pygame.K_t:
+                trainer()
 
 
 
